@@ -1,3 +1,12 @@
+## 4.1.0-wip
+
+- Add a `--[no-]deprecated-js-interop` flag to `serve`, `build` and `daemon`.
+  When set, it allows or disallows the deprecated JS interop libraries, such
+  as `dart:html` and `package:js`, in dartdevc, dart2js and expression
+  evaluation. When not set, the Dart SDK default is used. Requires a Dart SDK
+  that supports the flag and `build_web_compilers` 4.9.0 or later.
+- Require `package:dwds` `^27.2.0`.
+
 ## 4.0.3
 
 - Fix failing debugger expression evaluation.

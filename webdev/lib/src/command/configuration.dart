@@ -36,6 +36,7 @@ const canaryFeaturesFlag = 'canary';
 const moduleFormatFlag = 'module-format';
 const offlineFlag = 'offline';
 const webHotReloadFlag = 'web-hot-reload';
+const deprecatedJsInteropFlag = 'deprecated-js-interop';
 
 ReloadConfiguration _parseReloadConfiguration(ArgResults argResults) {
   var auto = argResults.options.contains(autoOption)
@@ -111,61 +112,42 @@ class Configuration {
   final String? _moduleFormat;
   final bool? _offline;
   final bool? _webHotReload;
+  final bool? _deprecatedJsInterop;
 
   Configuration({
-    bool? autoRun,
-    int? chromeDebugPort,
-    bool? debugExtension,
-    bool? debug,
-    bool? enableInjectedClient,
-    String? hostname,
-    String? tlsCertChain,
-    String? tlsCertKey,
-    List<String>? launchApps,
-    bool? launchInChrome,
-    String? userDataDir,
-    bool? logRequests,
-    String? output,
+    this._autoRun,
+    this._chromeDebugPort,
+    this._debugExtension,
+    this._debug,
+    this._enableInjectedClient,
+    this._hostname,
+    this._tlsCertChain,
+    this._tlsCertKey,
+    this._launchApps,
+    this._launchInChrome,
+    this._userDataDir,
+    this._logRequests,
+    this._output,
     this.outputInput,
     this.outputPath,
-    ReloadConfiguration? reload,
-    bool? release,
-    bool? requireBuildWebCompilers,
-    bool? enableExpressionEvaluation,
-    bool? verbose,
-    bool? disableDds,
-    List<String>? experiments,
+    this._reload,
+    this._release,
+    this._requireBuildWebCompilers,
+    this._enableExpressionEvaluation,
+    this._verbose,
+    this._disableDds,
+    this._experiments,
     bool? canaryFeatures,
     String? moduleFormat,
-    bool? offline,
+    this._offline,
     bool? webHotReload,
-  }) : _autoRun = autoRun,
-       _chromeDebugPort = chromeDebugPort,
-       _debugExtension = debugExtension,
-       _debug = debug,
-       _enableInjectedClient = enableInjectedClient,
-       _hostname = hostname,
-       _tlsCertChain = tlsCertChain,
-       _tlsCertKey = tlsCertKey,
-       _launchApps = launchApps,
-       _launchInChrome = launchInChrome,
-       _userDataDir = userDataDir,
-       _logRequests = logRequests,
-       _output = output,
-       _release = release,
-       _reload = reload,
-       _requireBuildWebCompilers = requireBuildWebCompilers,
-       _disableDds = disableDds,
-       _enableExpressionEvaluation = enableExpressionEvaluation,
-       _verbose = verbose,
-       _experiments = experiments,
-       _canaryFeatures = (webHotReload == true && canaryFeatures == null)
+    this._deprecatedJsInterop,
+  }) : _canaryFeatures = (webHotReload == true && canaryFeatures == null)
            ? true
            : canaryFeatures,
        _moduleFormat = (webHotReload == true && moduleFormat == null)
            ? 'ddc'
            : moduleFormat,
-       _offline = offline,
        _webHotReload = webHotReload {
     _validateConfiguration();
   }
@@ -265,6 +247,7 @@ class Configuration {
     moduleFormat: other._moduleFormat ?? _moduleFormat,
     offline: other._offline ?? _offline,
     webHotReload: other._webHotReload ?? _webHotReload,
+    deprecatedJsInterop: other._deprecatedJsInterop ?? _deprecatedJsInterop,
   );
 
   factory Configuration.noInjectedClientDefaults() =>
@@ -320,6 +303,12 @@ class Configuration {
   bool get usesDdcLibraryBundle => canaryFeatures && moduleFormat == 'ddc';
 
   bool get offline => _offline ?? false;
+
+  /// Whether the compilers allow the deprecated JS interop libraries, such as
+  /// `dart:html`.
+  ///
+  /// If `null`, nothing is passed to the compilers and the SDK default is used.
+  bool? get deprecatedJsInterop => _deprecatedJsInterop;
 
   /// Returns a new configuration with values updated from the parsed args.
   static Configuration fromArgs(
@@ -520,6 +509,12 @@ class Configuration {
         ? argResults[offlineFlag] as bool?
         : defaultConfiguration.offline;
 
+    final deprecatedJsInterop =
+        argResults.options.contains(deprecatedJsInteropFlag) &&
+            argResults.wasParsed(deprecatedJsInteropFlag)
+        ? argResults[deprecatedJsInteropFlag] as bool?
+        : defaultConfiguration.deprecatedJsInterop;
+
     return Configuration(
       autoRun: defaultConfiguration.autoRun,
       chromeDebugPort: chromeDebugPort,
@@ -547,6 +542,7 @@ class Configuration {
       canaryFeatures: coercedCanaryFeatures ?? canaryFeatures,
       moduleFormat: coercedModuleFormat ?? moduleFormat,
       offline: offline,
+      deprecatedJsInterop: deprecatedJsInterop,
     );
   }
 }

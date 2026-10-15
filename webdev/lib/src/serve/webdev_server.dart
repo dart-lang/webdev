@@ -229,6 +229,7 @@ class WebDevServer {
         canaryFeatures: options.configuration.canaryFeatures,
         isFlutterApp: false,
         experiments: options.configuration.experiments,
+        deprecatedJsInterop: options.configuration.deprecatedJsInterop,
       );
 
       final LoadStrategy loadStrategy;
