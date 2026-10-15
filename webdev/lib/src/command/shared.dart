@@ -109,7 +109,7 @@ void addSharedArgs(
       help:
           'Whether to allow the deprecated JS interop libraries, such as '
           '"dart:html", "dart:js", "dart:js_util" and "package:js", when '
-          'compiling with dartdevc and dart2js.\n'
+          'compiling with ddc and dart2js.\n'
           'If not set, the Dart SDK default is used. Requires a Dart SDK and '
           '"build_web_compilers" version that support this option.',
     );
