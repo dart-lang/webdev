@@ -31,8 +31,8 @@ class PackageExceptionDetails {
   const PackageExceptionDetails._(
     this.error, {
     this.description,
-    bool missingDependency = false,
-  }) : _missingDependency = missingDependency;
+    this._missingDependency = false,
+  });
 
   static PackageExceptionDetails missingDep(
     String pkgName,
