@@ -36,7 +36,8 @@ defaults:
 env:
   PUB_ENVIRONMENT: bot.github
   DISPLAY: ":99"
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   job_001:
