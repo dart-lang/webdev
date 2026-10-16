@@ -1,11 +1,33 @@
-# Created with package:mono_repo v6.6.3
+# Created with package:mono_repo v6.9.0
 name: Dart CI
 on:
   push:
     branches:
       - main
       - master
+    paths:
+      - .github/workflows/dart.yml
+      - mono_repo.yaml
+      - "**/mono_pkg.yaml"
+      - "dwds/**"
+      - "dwds_test_common/**"
+      - "dwds_test_common/fixtures/_webdev_smoke/**"
+      - "example/**"
+      - "frontend_server_client/**"
+      - "webdev/**"
+      - "!**/*.md"
   pull_request:
+    paths:
+      - .github/workflows/dart.yml
+      - mono_repo.yaml
+      - "**/mono_pkg.yaml"
+      - "dwds/**"
+      - "dwds_test_common/**"
+      - "dwds_test_common/fixtures/_webdev_smoke/**"
+      - "example/**"
+      - "frontend_server_client/**"
+      - "webdev/**"
+      - "!**/*.md"
   schedule:
     - cron: "0 0 * * 0"
 defaults:
@@ -14,7 +36,8 @@ defaults:
 env:
   PUB_ENVIRONMENT: bot.github
   DISPLAY: ":99"
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   job_001:
@@ -26,7 +49,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
@@ -36,8 +59,10 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - name: mono_repo self validate
-        run: dart pub global activate mono_repo 6.6.3
+        run: dart pub global activate mono_repo 6.9.0
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
@@ -49,7 +74,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:format-analyze_0-test_0"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -61,6 +86,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -87,7 +114,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common-dwds_test_common/fixtures/_webdev_smoke-example-frontend_server_client;commands:format-analyze_0"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common-dwds_test_common/fixtures/_webdev_smoke-example-frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -99,6 +126,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_test_common_pub_upgrade
         name: dwds_test_common; dart pub upgrade
         run: dart pub upgrade
@@ -160,7 +189,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:format-analyze_0-test_7"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -172,6 +201,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -198,7 +229,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:command-test_1"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -210,6 +241,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -237,7 +270,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:test_2"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -249,6 +282,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -272,7 +307,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:test_3"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -284,6 +319,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -307,7 +344,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds;commands:test_4"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -319,6 +356,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -342,7 +381,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common;commands:command-test_6"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:dwds_test_common
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -354,6 +393,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_test_common_pub_upgrade
         name: dwds_test_common; dart pub upgrade
         run: dart pub upgrade
@@ -381,7 +422,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client;commands:test_5"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:frontend_server_client
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -393,6 +434,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         run: dart pub upgrade
@@ -416,7 +459,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev;commands:command-test_5"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
@@ -428,6 +471,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -457,6 +502,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -482,6 +529,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -507,6 +556,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -532,6 +583,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -557,6 +610,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_test_common_pub_upgrade
         name: dwds_test_common; dart pub upgrade
         run: dart pub upgrade
@@ -582,6 +637,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: frontend_server_client_pub_upgrade
         name: frontend_server_client; dart pub upgrade
         run: dart pub upgrade
@@ -607,6 +664,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -631,7 +690,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:command-test_5"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
             os:ubuntu-latest;pub-cache-hosted
@@ -643,6 +702,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -685,7 +746,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:command-test_5"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
             os:ubuntu-latest;pub-cache-hosted
@@ -697,6 +758,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -739,7 +802,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds;commands:analyze_1"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:dwds
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
             os:ubuntu-latest;pub-cache-hosted
@@ -751,6 +814,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -789,7 +854,7 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev;commands:analyze_1"
-          restore-keys: |
+          restore-keys: |-
             os:ubuntu-latest;pub-cache-hosted;sdk:beta;packages:webdev
             os:ubuntu-latest;pub-cache-hosted;sdk:beta
             os:ubuntu-latest;pub-cache-hosted
@@ -801,6 +866,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -841,6 +908,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: dwds_pub_upgrade
         name: dwds; dart pub upgrade
         run: dart pub upgrade
@@ -881,6 +950,8 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -919,7 +990,7 @@ jobs:
             "{'text':'Build failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \
             "${CHAT_WEBHOOK_URL}"
         env:
-          CHAT_WEBHOOK_URL: "${{ secrets.BUILD_AND_TEST_TEAM_CHAT_WEBHOOK_URL }}"
+          CHAT_WEBHOOK_URL: "${{ secrets.WEBDEV_NOTIFICATION_CHAT_WEBHOOK }}"
     needs:
       - job_001
       - job_002
