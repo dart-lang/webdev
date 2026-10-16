@@ -10,17 +10,14 @@ import 'dart:io';
 
 import 'package:io/io.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
-import 'package:test_process/test_process.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'package:webdev/src/logging.dart';
 import 'package:webdev/src/pubspec.dart';
 import 'package:webdev/src/serve/utils.dart';
-import 'package:webdev/src/util.dart';
 import 'package:yaml/yaml.dart';
 
 import 'daemon/utils.dart';
@@ -44,18 +41,7 @@ void e2eTests({required TestRunner testRunner}) {
   setUpAll(() async {
     configureLogWriter(debug);
     await testRunner.setUpAll();
-    exampleDirectory = p.absolute(
-      p.join(p.current, '..', 'dwds_test_common', 'fixtures', '_webdev_smoke'),
-    );
-
-    final process = await TestProcess.start(
-      dartPath,
-      ['pub', 'upgrade'],
-      workingDirectory: exampleDirectory,
-      environment: getPubEnvironment(),
-    );
-
-    await process.shouldExit(0);
+    exampleDirectory = await testRunner.prepareWorkspace();
 
     await d
         .file('.dart_tool/package_config.json', isNotEmpty)
@@ -71,9 +57,13 @@ void e2eTests({required TestRunner testRunner}) {
     ) as YamlMap;
     final webdevYaml =
         loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
+    // The fixture lives in the Dart SDK's dwds_test_common, so its SDK
+    // constraint isn't kept in lockstep with webdev's. Require that it allows
+    // every SDK that webdev supports.
     expect(
-      smokeYaml['environment']['sdk'],
-      equals(webdevYaml['environment']['sdk']),
+      VersionConstraint.parse(smokeYaml['environment']['sdk'])
+          .allowsAll(VersionConstraint.parse(webdevYaml['environment']['sdk'])),
+      true,
     );
     expect(
       buildRunnerConstraint.allowsAny(

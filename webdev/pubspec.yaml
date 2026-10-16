@@ -47,8 +47,8 @@ dev_dependencies:
   build_verify: ^3.0.0
   build_version: ^2.1.1
   test: ^1.21.1
-  dwds_test_common:
-    path: ../dwds_test_common
+  # Overridden below to the copy in the Dart SDK.
+  dwds_test_common: any
   test_descriptor: ^2.0.0
   test_process: ^2.0.2
   webdriver: ^3.0.0
