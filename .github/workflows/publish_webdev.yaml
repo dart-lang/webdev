@@ -12,7 +12,7 @@ jobs:
     if: ${{ github.repository_owner == 'dart-lang' }}
     permissions:
       id-token: write
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@6eae1842087284e3f4d3b0b2ae847d72e6046d8c # dart-lang/setup-dart#206
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@a1d8526c926344e01ba48a7368788c05ac98cb29 # main
     with:
       working-directory: webdev
       sdk: dev
