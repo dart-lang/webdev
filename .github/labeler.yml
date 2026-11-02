@@ -6,7 +6,7 @@
 
 'package:dwds':
   - changed-files:
-      - any-glob-to-any-file: 'dwds/**/*'
+      - any-glob-to-any-file: 'dwds_webdev_integration_test/**/*'
 
 'package:frontend_server_client':
   - changed-files:
@@ -18,4 +18,4 @@
 
 'dart-debug-extension':
   - changed-files:
-      - any-glob-to-any-file: 'dwds/debug_extension/**/*'
+      - any-glob-to-any-file: 'debug_extension/**/*'

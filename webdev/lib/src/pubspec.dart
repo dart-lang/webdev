@@ -31,8 +31,8 @@ class PackageExceptionDetails {
   const PackageExceptionDetails._(
     this.error, {
     this.description,
-    bool missingDependency = false,
-  }) : _missingDependency = missingDependency;
+    this._missingDependency = false,
+  });
 
   static PackageExceptionDetails missingDep(
     String pkgName,
@@ -91,13 +91,9 @@ class PubspecLock {
       dir = next;
     }
 
-    final pubspecLock =
-        loadYaml(
-              await File(
-                p.relative(p.join(dir, 'pubspec.lock')),
-              ).readAsString(),
-            )
-            as YamlMap;
+    final pubspecLock = loadYaml(
+      await File(p.relative(p.join(dir, 'pubspec.lock'))).readAsString(),
+    ) as YamlMap;
 
     final packages = pubspecLock['packages'] as YamlMap?;
     return PubspecLock(packages);
@@ -190,11 +186,22 @@ Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
 final buildRunnerConstraint = VersionConstraint.parse('^2.4.0');
 final buildWebCompilersConstraint = VersionConstraint.parse('^4.4.12');
 
+/// The `build_web_compilers` versions that support the `deprecated-js-interop`
+/// option.
+final buildWebCompilersDeprecatedJsInteropConstraint = VersionConstraint.parse(
+  '^4.9.0',
+);
+
 // Note the minimum versions should never be dev versions as users will not
 // get them by default.
+//
+// If [deprecatedJsInteropArgument] is set, it is the `--[no-]` form of the
+// `deprecated-js-interop` flag passed by the user, which requires a newer
+// `build_web_compilers`.
 Future<void> checkPubspecLock(
   PubspecLock pubspecLock, {
   required bool requireBuildWebCompilers,
+  String? deprecatedJsInteropArgument,
 }) async {
   final issues = <PackageExceptionDetails>[];
   final buildRunnerIssues = pubspecLock.checkPackage(
@@ -219,6 +226,25 @@ Future<void> checkPubspecLock(
 
   if (issues.isNotEmpty) {
     throw PackageException(issues);
+  }
+
+  if (requireBuildWebCompilers && deprecatedJsInteropArgument != null) {
+    _checkDeprecatedJsInteropSupport(pubspecLock, deprecatedJsInteropArgument);
+  }
+}
+
+/// Throws a [PackageException] if `build_web_compilers` does not support the
+/// `deprecated-js-interop` option used by [argument].
+void _checkDeprecatedJsInteropSupport(
+  PubspecLock pubspecLock,
+  String argument,
+) {
+  final issues = pubspecLock.checkPackage(
+    'build_web_compilers',
+    buildWebCompilersDeprecatedJsInteropConstraint,
+  );
+  if (issues.isNotEmpty) {
+    throw PackageException(issues, unsupportedArgument: argument);
   }
 }
 

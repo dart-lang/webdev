@@ -6,6 +6,9 @@ on:
   schedule:
     - cron: "00 14 * * *" # Everyday at 3:00 PM UTC (8:00 AM PST)
 
+permissions:
+  contents: read
+
 jobs:
   daily_testing:
     name: Daily Testing
@@ -18,20 +21,20 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - id: dwds_pub_upgrade
-        name: dwds; dart pub upgrade
+      - id: dwds_webdev_integration_test_pub_upgrade
+        name: dwds_webdev_integration_test; dart pub upgrade
         run: dart pub upgrade
         if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: dwds
-      - name: dwds; dart analyze .
+        working-directory: dwds_webdev_integration_test
+      - name: dwds_webdev_integration_test; dart analyze .
         run: dart analyze .
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
-      - id: dwds_daily_tests
-        name: "dwds; dart test --tags=daily"
+        if: "always() && steps.dwds_webdev_integration_test_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds_webdev_integration_test
+      - id: dwds_webdev_integration_test_daily_tests
+        name: "dwds_webdev_integration_test; dart test --tags=daily"
         run: "dart test --tags=daily"
-        if: "always() && steps.dwds_pub_upgrade.conclusion == 'success'"
-        working-directory: dwds
+        if: "always() && steps.dwds_webdev_integration_test_pub_upgrade.conclusion == 'success'"
+        working-directory: dwds_webdev_integration_test
       - id: webdev_pub_upgrade
         name: webdev; dart pub upgrade
         run: dart pub upgrade
@@ -47,7 +50,7 @@ jobs:
         if: "always() && steps.webdev_pub_upgrade.conclusion == 'success'"
         working-directory: webdev
       - name: "Notify failure"
-        if: "always() && steps.dwds_daily_tests.conclusion == 'failure' || steps.webdev_daily_tests.conclusion == 'failure'"
+        if: "always() && (steps.dwds_webdev_integration_test_daily_tests.conclusion == 'failure' || steps.webdev_daily_tests.conclusion == 'failure')"
         run: |
           curl -H "Content-Type: application/json" -X POST -d \
             "{'text':'Daily Webdev tests failed! ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'}" \

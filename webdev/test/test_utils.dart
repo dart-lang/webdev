@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
@@ -122,9 +123,7 @@ class TestRunner {
   }
 
   Future<String> prepareWorkspace() async {
-    final originalDirectory = p.absolute(
-      p.join(p.current, '..', 'dwds_test_common', 'fixtures', '_webdev_smoke'),
-    );
+    final originalDirectory = _webdevSmokeFixturePath();
     final tempDir = Directory.systemTemp.createTempSync('webdev_smoke_');
     final exampleDirectory = tempDir.path;
     _copyCleanDirectory(Directory(originalDirectory), tempDir);
@@ -166,4 +165,17 @@ Map<String, String> getPubEnvironment() {
   final environment = {'PUB_ENVIRONMENT': pubEnvironment};
 
   return environment;
+}
+
+/// The path to the `_webdev_smoke` fixture in `package:dwds_test_common`.
+String _webdevSmokeFixturePath() {
+  final utilitiesUri = Isolate.resolvePackageUriSync(
+    Uri.parse('package:dwds_test_common/utilities.dart'),
+  );
+  if (utilitiesUri == null) {
+    throw StateError('Unable to resolve package:dwds_test_common.');
+  }
+  // Strip `lib/utilities.dart`.
+  final packageRoot = p.dirname(p.dirname(utilitiesUri.toFilePath()));
+  return p.join(packageRoot, 'fixtures', '_webdev_smoke');
 }

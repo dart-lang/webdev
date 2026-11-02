@@ -131,14 +131,11 @@ void main() {
     );
   });
 
-  test(
-    'webHotReload coerces canaryFeatures to true and moduleFormat to ddc if not set',
-    () {
-      final configuration = Configuration(webHotReload: true);
-      expect(configuration.canaryFeatures, isTrue);
-      expect(configuration.moduleFormat, equals('ddc'));
-    },
-  );
+  test('webHotReload coerces canaryFeatures to true and moduleFormat to ddc if not set', () {
+    final configuration = Configuration(webHotReload: true);
+    expect(configuration.canaryFeatures, isTrue);
+    expect(configuration.moduleFormat, equals('ddc'));
+  });
 
   test('webHotReload + canaryFeatures false throws', () {
     expect(
@@ -172,5 +169,62 @@ void main() {
     );
     expect(config.moduleFormat, equals('amd'));
     expect(config.canaryFeatures, isFalse);
+  });
+
+  group('--[no-]deprecated-js-interop', () {
+    test('is not set by default', () {
+      final config = Configuration.fromArgs(argParser.parse([]));
+      expect(config.deprecatedJsInterop, isNull);
+      expect(
+        buildRunnerArgs(config),
+        isNot(contains(contains('deprecated-js-interop'))),
+      );
+    });
+
+    test('is read from args', () {
+      expect(
+        Configuration.fromArgs(argParser.parse(['--deprecated-js-interop']))
+            .deprecatedJsInterop,
+        isTrue,
+      );
+      expect(
+        Configuration.fromArgs(argParser.parse(['--no-deprecated-js-interop']))
+            .deprecatedJsInterop,
+        isFalse,
+      );
+    });
+
+    test('uses the default configuration when not passed', () {
+      final config = Configuration.fromArgs(
+        argParser.parse([]),
+        defaultConfiguration: Configuration(deprecatedJsInterop: false),
+      );
+      expect(config.deprecatedJsInterop, isFalse);
+    });
+
+    for (final value in [true, false]) {
+      test('configures every JS compiler builder with $value', () {
+        final config = Configuration(deprecatedJsInterop: value);
+        final defines = [
+          for (final builder in [
+            'ddc',
+            'ddc_modules',
+            'dart2js_modules',
+            'entrypoint',
+          ])
+            'build_web_compilers|$builder=deprecated-js-interop=$value',
+        ];
+        final args = buildRunnerArgs(config);
+        for (final define in defines) {
+          final index = args.indexOf(define);
+          expect(index, greaterThan(0), reason: define);
+          expect(args[index - 1], '--define');
+        }
+        expect(
+          args.where((arg) => arg.contains('deprecated-js-interop')),
+          hasLength(defines.length),
+        );
+      });
+    }
   });
 }

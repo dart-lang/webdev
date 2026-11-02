@@ -6,10 +6,8 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
-import 'package:test_process/test_process.dart';
 
 import 'package:webdev/src/logging.dart';
 import 'package:webdev/src/serve/utils.dart';
@@ -26,24 +24,7 @@ void tlsTests({required TestRunner testRunner}) {
     setUpAll(() async {
       configureLogWriter(debug);
       await testRunner.setUpAll();
-      exampleDirectory = p.absolute(
-        p.join(
-          p.current,
-          '..',
-          'dwds_test_common',
-          'fixtures',
-          '_webdev_smoke',
-        ),
-      );
-
-      final process = await TestProcess.start(
-        'dart',
-        ['pub', 'upgrade'],
-        workingDirectory: exampleDirectory,
-        environment: getPubEnvironment(),
-      );
-
-      await process.shouldExit(0);
+      exampleDirectory = await testRunner.prepareWorkspace();
 
       await d
           .file('.dart_tool/package_config.json', isNotEmpty)
