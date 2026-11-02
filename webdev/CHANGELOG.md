@@ -1,4 +1,4 @@
-## 4.1.0-wip
+## 4.1.0
 
 - Add a `--[no-]deprecated-js-interop` flag to `serve`, `build` and `daemon`.
   When set, it allows or disallows the deprecated JS interop libraries, such
