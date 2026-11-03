@@ -1,0 +1,19 @@
+# A CI configuration to publish package:webdev to pub.dev.
+
+name: Publish package:webdev
+
+on:
+  push:
+    tags:
+      - 'webdev-v[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  publish:
+    if: ${{ github.repository_owner == 'dart-lang' }}
+    permissions:
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@a1d8526c926344e01ba48a7368788c05ac98cb29 # main
+    with:
+      working-directory: webdev
+      sdk: dev
+      use-flutter: false
