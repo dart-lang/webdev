@@ -14,9 +14,8 @@ import 'package:webdev/src/serve/utils.dart';
 import 'package:webdev/src/util.dart';
 
 void main() {
-  test('dartPath and devToolsPath resolve via cli_util', () {
+  test('dartPath resolves via cli_util', () {
     expect(File(dartPath).existsSync(), isTrue);
-    expect(Directory(devToolsPath).existsSync(), isTrue);
   });
 
   late Directory from;

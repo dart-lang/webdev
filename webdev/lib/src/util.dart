@@ -5,8 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cli_util/cli_util.dart';
-import 'package:path/path.dart' as p;
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -27,17 +26,6 @@ void serveHttpRequests(
   }, onError: onError);
 }
 
-/// The path to the root directory of the SDK.
-final String _sdkDir = (() {
-  final sdk = sdkPath;
-  if (sdk == null) {
-    throw StateError('Unable to locate the Dart SDK.');
-  }
-  assert(FileSystemEntity.isFileSync(p.join(sdk, 'version')));
-  return sdk;
-})();
-
 final String dartPath =
-    dartExecutable ??
-    p.join(_sdkDir, 'bin', Platform.isWindows ? 'dart.exe' : 'dart');
-final String devToolsPath = p.join(_sdkDir, 'bin', 'resources', 'devtools');
+    cli_util.dartExecutable ??
+    (throw StateError('Unable to locate the Dart SDK.'));
