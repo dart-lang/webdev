@@ -116,13 +116,12 @@ Future<void> _openIssueTracker(Event _) async {
 
 Future<void> _launchDevTools(Event _) async {
   final tabId = await _tabId;
-  final json = jsonEncode([
-    'DebugStateChange',
+  final json = jsonEncode(
     DebugStateChange(
       tabId: tabId!,
       newState: DebugStateChange.startDebugging,
     ).toJson(),
-  ]);
+  );
   await sendRuntimeMessage(
     type: MessageType.debugStateChange,
     body: json,

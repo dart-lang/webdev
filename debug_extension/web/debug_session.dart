@@ -786,7 +786,7 @@ class _DebugSession {
     // Collect extension events and send them periodically to the server.
     _batchSubscription = _batchController.stream.listen((events) {
       _socketClient.sink.add(
-        jsonEncode(['BatchedEvents', BatchedEvents(events: events).toJson()]),
+        jsonEncode(BatchedEvents(events: events).toJson()),
       );
     });
     // Listen for incoming events:
@@ -804,7 +804,7 @@ class _DebugSession {
     // Collect extension events and send them periodically to the server.
     _batchSubscription = _batchController.stream.listen((events) {
       _socketClient.sink.add(
-        jsonEncode(['BatchedEvents', BatchedEvents(events: events).toJson()]),
+        jsonEncode(BatchedEvents(events: events).toJson()),
       );
     });
   }
