@@ -234,7 +234,8 @@ void _enableExecutionContextReporting(int tabId) {
     Debuggee(tabId: tabId),
     'Runtime.enable',
     EmptyParam(),
-    allowInterop((_) {
+    // Chrome invokes the callback with no arguments when the command fails.
+    allowInterop(([_]) {
       final chromeError = chrome.runtime.lastError;
       if (chromeError != null) {
         final errorMessage = _translateChromeError(chromeError.message);
@@ -318,13 +319,21 @@ Future<bool> _isDartFrame({required int tabId, required int contextId}) {
       returnByValue: true,
       contextId: contextId,
     ),
-    allowInterop((dynamic response) {
+    // Chrome invokes the callback with no arguments when the command fails.
+    allowInterop(([Object? response]) {
+      final frameIdentifier = 'Frame at tab $tabId with context $contextId';
+      if (response == null) {
+        final errorMessage =
+            chrome.runtime.lastError?.message ?? 'Unknown error.';
+        debugWarn('Failed to evaluate $frameIdentifier: $errorMessage');
+        completer.complete(false);
+        return;
+      }
       final evalResponse = response as _EvalResponse;
       final value = evalResponse.result.value;
       final appId = value?[0];
       final instanceId = value?[1];
       final dwdsVersion = value?[2];
-      final frameIdentifier = 'Frame at tab $tabId with context $contextId';
       if (appId == null || instanceId == null) {
         debugWarn('$frameIdentifier is not a Dart frame.');
         completer.complete(false);

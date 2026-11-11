@@ -55,6 +55,13 @@ class Debugger {
 
   external void detach(Debuggee target, Function? callback);
 
+  /// The current Chrome docs only show the Promise-based form of this API, but
+  /// a trailing [callback] is still supported for backwards compatibility.
+  ///
+  /// On success, [callback] is invoked with the command's result object. On
+  /// failure, it is invoked with *no arguments* and `chrome.runtime.lastError`
+  /// is set, so callbacks must accept an optional positional argument (e.g.
+  /// `allowInterop(([result]) {...})`).
   external void sendCommand(
     Debuggee target,
     String method,
