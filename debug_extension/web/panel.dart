@@ -272,13 +272,12 @@ void _hideWarningBanner() {
 Future<void> _launchDebugConnection(Event _) async {
   _updateElementVisibility(_launchDebugConnectionButtonId, visible: false);
   _updateElementVisibility(_loadingSpinnerId, visible: true);
-  final json = jsonEncode([
-    'DebugStateChange',
+  final json = jsonEncode(
     DebugStateChange(
       tabId: _tabId,
       newState: DebugStateChange.startDebugging,
     ).toJson(),
-  ]);
+  );
   await sendRuntimeMessage(
     type: MessageType.debugStateChange,
     body: json,
