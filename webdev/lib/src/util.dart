@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -26,20 +26,6 @@ void serveHttpRequests(
   }, onError: onError);
 }
 
-/// The path to the root directory of the SDK.
-final String _sdkDir = (() {
-  // The Dart executable is in "/path/to/sdk/bin/dart", so two levels up is
-  // "/path/to/sdk".
-  final String dartExecutable = Platform.isWindows
-      // Use 'where.exe' to support powershell as well
-      ? (Process.runSync('where.exe', ['dart.exe']).stdout as String)
-            .split(RegExp('(\r\n|\r|\n)'))
-            .first
-      : Process.runSync('which', ['dart']).stdout;
-  final aboveExecutable = p.dirname(p.dirname(dartExecutable));
-  assert(FileSystemEntity.isFileSync(p.join(aboveExecutable, 'version')));
-  return aboveExecutable;
-})();
-
-final String dartPath = p.join(_sdkDir, 'bin', 'dart');
-final String devToolsPath = p.join(_sdkDir, 'bin', 'resources', 'devtools');
+final String dartPath =
+    cli_util.dartExecutable ??
+    (throw StateError('Unable to locate the Dart SDK.'));
