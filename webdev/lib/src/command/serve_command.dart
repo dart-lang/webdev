@@ -8,6 +8,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 
+import '../daemon_client.dart';
 import '../logging.dart';
 import '../pubspec.dart';
 import '../serve/dev_workflow.dart';
@@ -152,12 +153,17 @@ refresh: Performs a full page refresh.
     final targetPorts = parseDirectoryArgs(directoryArgs);
     validateLaunchApps(configuration.launchApps, targetPorts.keys);
 
-    final workflow = await DevWorkflow.start(
-      configuration,
-      buildOptions,
-      targetPorts,
-    );
-    await workflow.done;
-    return 0;
+    try {
+      final workflow = await DevWorkflow.start(
+        configuration,
+        buildOptions,
+        targetPorts,
+      );
+      await workflow.done;
+      return 0;
+    } on DaemonException catch (e) {
+      logWriter(Level.SEVERE, e.message);
+      return 1;
+    }
   }
 }

@@ -6,21 +6,36 @@ import 'package:test/test.dart';
 import 'package:webdev/src/pubspec.dart';
 import 'package:yaml/yaml.dart';
 
-/// A lock file with hosted `build_runner` and `build_web_compilers`, and no
-/// `build_daemon`, so checking it does not need the network.
-PubspecLock _lockWith({required String buildWebCompilersVersion}) =>
-    PubspecLock(
-      loadYaml('''
+/// A lock file with hosted `build_runner`, `build_web_compilers`, and optional
+/// `build_daemon`.
+PubspecLock _lockWith({
+  String buildWebCompilersVersion = '4.9.0',
+  String? buildDaemonVersion,
+}) => PubspecLock(
+  loadYaml('''
 build_runner:
   source: hosted
   version: "2.5.0"
 build_web_compilers:
   source: hosted
   version: "$buildWebCompilersVersion"
-''') as YamlMap,
-    );
+${buildDaemonVersion == null ? '' : '''
+build_daemon:
+  source: hosted
+  version: "$buildDaemonVersion"
+'''}''') as YamlMap,
+);
 
 void main() {
+  group('checkPubspecLock with build_daemon', () {
+    test('allows build_daemon 4.1.4 or newer', () async {
+      await checkPubspecLock(
+        _lockWith(buildDaemonVersion: '4.1.4'),
+        requireBuildWebCompilers: true,
+      );
+    });
+  });
+
   group('checkPubspecLock with deprecated-js-interop', () {
     test('allows an older build_web_compilers without the flag', () async {
       await checkPubspecLock(
