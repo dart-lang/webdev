@@ -142,7 +142,7 @@ class PubspecLock {
 Future<List<PackageExceptionDetails>> _validateBuildDaemonVersion(
   PubspecLock pubspecLock,
 ) async {
-  final buildDaemonConstraint = '^4.0.0';
+  const buildDaemonConstraint = '^4.1.4';
 
   final issues = <PackageExceptionDetails>[];
 

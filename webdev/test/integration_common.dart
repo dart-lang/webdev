@@ -103,7 +103,7 @@ void integrationTests({required TestRunner testRunner}) {
   final invalidRanges = <String, List<String>>{
     'build_runner': ['0.8.9', '3.0.0'],
     'build_web_compilers': ['0.3.5', '5.0.0'],
-    'build_daemon': ['0.3.0', '5.0.0'],
+    'build_daemon': ['0.3.0', '4.1.2', '5.0.0'],
   };
 
   for (final command in ['build', 'serve', 'daemon']) {
@@ -297,7 +297,7 @@ dependencies:
 
 const _supportedBuildRunnerVersion = '2.4.0';
 const _supportedWebCompilersVersion = '4.4.12';
-const _supportedBuildDaemonVersion = '4.0.0';
+const _supportedBuildDaemonVersion = '4.1.4';
 
 String _pubspecYaml = '''
   name: sample
