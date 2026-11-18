@@ -1,3 +1,9 @@
+## 4.1.1-wip
+
+- Require `build_daemon: ^4.1.4` in `checkPubspecLock`.
+- Catch `MissingPortFile` when connecting to the build daemon and report an
+  actionable `DaemonException` instead of an unhandled exception.
+
 ## 4.1.0
 
 - Add a `--[no-]deprecated-js-interop` flag to `serve`, `build` and `daemon`.

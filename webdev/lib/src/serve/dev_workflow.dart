@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
-import 'package:build_daemon/data/server_log.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 
@@ -18,33 +17,6 @@ import '../logging.dart';
 import 'chrome.dart';
 import 'server_manager.dart';
 import 'webdev_server.dart';
-
-Future<BuildDaemonClient> _startBuildDaemon(
-  String workingDirectory,
-  List<String> buildOptions,
-) async {
-  try {
-    logWriter(logging.Level.INFO, 'Connecting to the build daemon...');
-    return await connectClient(workingDirectory, buildOptions, (serverLog) {
-      logWriter(
-        toLoggingLevel(serverLog.level),
-        serverLog.message,
-        loggerName: serverLog.loggerName,
-        error: serverLog.error,
-        stackTrace: serverLog.stackTrace,
-      );
-    });
-  } on OptionsSkew {
-    // TODO(grouma) - Give an option to kill the running daemon.
-    throw StateError(
-      'Incompatible options with current running build daemon.\n\n'
-      'Please stop other WebDev instances running in this directory '
-      'before starting a new instance with these options.',
-    );
-  } on VersionSkew {
-    throw StateError(versionSkewMessage);
-  }
-}
 
 String _uriForLaunchApp(String launchApp, ServerManager serverManager) {
   final parts = p.url.split(launchApp);
@@ -212,7 +184,7 @@ class DevWorkflow {
     Map<String, int> targetPorts,
   ) async {
     final workingDirectory = Directory.current.path;
-    final client = await _startBuildDaemon(workingDirectory, buildOptions);
+    final client = await startBuildDaemon(workingDirectory, buildOptions);
     logWriter(logging.Level.INFO, 'Registering build targets...');
     _registerBuildTargets(client, configuration, targetPorts);
     logWriter(logging.Level.INFO, 'Starting initial build...');

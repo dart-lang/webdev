@@ -14,6 +14,7 @@ import 'package:logging/logging.dart';
 import '../daemon/app_domain.dart';
 import '../daemon/daemon.dart';
 import '../daemon/daemon_domain.dart';
+import '../daemon_client.dart';
 import '../logging.dart';
 import '../pubspec.dart';
 import '../serve/dev_workflow.dart';
@@ -135,6 +136,11 @@ class DaemonCommand extends Command<int> {
       await daemon.onExit;
       exitCode = 0;
       return 0;
+    } on DaemonException catch (e) {
+      logWriter(Level.SEVERE, e.message);
+      daemon?.shutdown();
+      exitCode = 1;
+      return 1;
     } catch (e) {
       daemon?.shutdown();
       exitCode = 1;

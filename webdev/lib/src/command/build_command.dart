@@ -7,10 +7,8 @@ import 'dart:io' show Directory;
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:build_daemon/client.dart';
 import 'package:build_daemon/data/build_status.dart';
 import 'package:build_daemon/data/build_target.dart';
-import 'package:build_daemon/data/server_log.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:logging/logging.dart' as logging;
 
@@ -67,18 +65,7 @@ class BuildCommand extends Command<int> {
     }
 
     try {
-      logWriter(logging.Level.INFO, 'Connecting to the build daemon...');
-      final client = await connectClient(Directory.current.path, arguments, (
-        serverLog,
-      ) {
-        logWriter(
-          toLoggingLevel(serverLog.level),
-          serverLog.message,
-          error: serverLog.error,
-          loggerName: serverLog.loggerName,
-          stackTrace: serverLog.stackTrace,
-        );
-      });
+      final client = await startBuildDaemon(Directory.current.path, arguments);
       OutputLocation? outputLocation;
       final outputInput = configuration.outputInput;
       if (configuration.outputPath != null) {
@@ -126,16 +113,8 @@ class BuildCommand extends Command<int> {
       }
       await client.close();
       return exitCode;
-    } on OptionsSkew catch (_) {
-      logWriter(
-        logging.Level.SEVERE,
-        'Incompatible options with current running build daemon.\n\n'
-        'Please stop other WebDev instances running in this directory '
-        'before starting a new instance with these options.\n\n',
-      );
-      return 1;
-    } on VersionSkew catch (_) {
-      logWriter(logging.Level.SEVERE, versionSkewMessage);
+    } on DaemonException catch (e) {
+      logWriter(logging.Level.SEVERE, e.message);
       return 1;
     }
   }
