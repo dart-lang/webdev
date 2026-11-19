@@ -1,3 +1,7 @@
+## 4.1.1-wip
+
+- Locate the Dart SDK and `dart` executable via `package:cli_util` when running in AOT mode.
+
 ## 4.1.0
 
 - Add a `--[no-]deprecated-js-interop` flag to `serve`, `build` and `daemon`.

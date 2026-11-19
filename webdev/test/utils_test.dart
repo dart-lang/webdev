@@ -11,8 +11,13 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:webdev/src/serve/utils.dart';
+import 'package:webdev/src/util.dart';
 
 void main() {
+  test('dartPath resolves via cli_util', () {
+    expect(File(dartPath).existsSync(), isTrue);
+  });
+
   late Directory from;
   late Directory to;
 
