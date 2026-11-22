@@ -876,7 +876,7 @@ class _EvalResult {
 @JS()
 @anonymous
 class _InjectedParams {
-  external String get expresion;
+  external String get expression;
   external bool get returnByValue;
   external int get contextId;
   external factory _InjectedParams({
