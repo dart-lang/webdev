@@ -58,6 +58,7 @@ void _registerListeners() {
   chrome.commands.onCommand.addListener(
     allowInterop(_maybeSendCopyAppIdRequest),
   );
+  registerDebugEventListeners();
 }
 
 Future<void> _handleRuntimeMessages(

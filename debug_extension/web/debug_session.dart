@@ -45,6 +45,7 @@ const _devToolsAlreadyOpenedAlert =
 
 final _debugSessions = <_DebugSession>[];
 final _tabIdToTrigger = <int, Trigger>{};
+bool _debugEventListenersRegistered = false;
 
 enum DetachReason {
   canceledByUser,
@@ -118,7 +119,7 @@ Future<void> attachDebugger(
   if (!tabIsDebuggable) return;
   debugLog('Attaching to tab $dartAppTabId', verbose: true);
   _tabIdToTrigger[dartAppTabId] = trigger;
-  _registerDebugEventListeners();
+  registerDebugEventListeners();
   chrome.debugger.attach(
     Debuggee(tabId: dartAppTabId),
     '1.3',
@@ -208,7 +209,9 @@ Future<bool> _validateTabIsDebuggable(
   return isAuthenticated;
 }
 
-void _registerDebugEventListeners() {
+void registerDebugEventListeners() {
+  if (_debugEventListenersRegistered) return;
+  _debugEventListenersRegistered = true;
   chrome.debugger.onEvent.addListener(allowInterop(_onDebuggerEvent));
   chrome.debugger.onDetach.addListener(
     allowInterop((source, _) async {
